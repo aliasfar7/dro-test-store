@@ -11,7 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = join(ROOT, "public");
+const OUT = process.env.OUT_DIR || join(ROOT, "public"); // verify builds redirect this to a temp dir
 const BASE = (process.env.BASE_PATH || "").replace(/\/$/, ""); // no trailing slash
 const data = JSON.parse(readFileSync(join(ROOT, "data", "products.json"), "utf8"));
 const { store } = data;

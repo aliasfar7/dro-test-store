@@ -18,14 +18,17 @@
 // Credentials are read from the environment only — never logged, never committed.
 
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { sendConversions } from "./lib/capi.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = join(ROOT, "public");
+// Build the sample-id site into a throwaway temp dir, NOT the tracked public/ — otherwise every
+// verification run would leave fake pixel ids (1234567890, …) staged in the deployed output.
+const OUT = mkdtempSync(join(tmpdir(), "dro5-verify-"));
 const DATA = join(ROOT, "data", "products.json");
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log(`  ✓ ${m}`); } else { fail++; console.log(`  ✗ ${m}`); } };
@@ -41,7 +44,7 @@ sample.store.capiEndpoint = "/api/capi";
 const orig = readFileSync(DATA, "utf8");
 try {
   writeFileSync(DATA, JSON.stringify(sample, null, 2));
-  execFileSync("node", [join(ROOT, "scripts", "build.mjs")], { stdio: "pipe" });
+  execFileSync("node", [join(ROOT, "scripts", "build.mjs")], { stdio: "pipe", env: { ...process.env, OUT_DIR: OUT } });
 } finally {
   writeFileSync(DATA, orig); // ALWAYS restore the real data file, even if the build throws
 }
@@ -105,6 +108,7 @@ if (!anyCreds) {
 }
 
 function finish() {
+  rmSync(OUT, { recursive: true, force: true }); // drop the throwaway sample-id build
   console.log(`\n${fail === 0 ? "✅ PASS" : "❌ FAIL"} — ${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);
 }
