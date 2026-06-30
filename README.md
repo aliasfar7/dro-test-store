@@ -1,17 +1,20 @@
 # Dropship Test-Store Machine (DRO-2)
 
 The fastest credible stack for hosting many one-product test pages and reaching a checkout
-step. Static site generated from a single data file, deployed to Vercel. Hosted checkout
-(Stripe Payment Link / Shopify) is a per-product slot — no card data ever touches this site,
-which keeps processor risk low.
+step. Static site generated from a single data file. Hosted checkout (Stripe Payment Link /
+Shopify) is a per-product slot — no card data ever touches this site, which keeps processor
+risk low.
+
+**Live:** https://aliasfar7.github.io/dro-test-store/ (GitHub Pages, $0).
+The build is host-portable — set `BASE_PATH=""` to move to Vercel/Netlify or a custom domain.
 
 ## Add a new test product in minutes
 
 1. Add one object to the `products` array in [`data/products.json`](data/products.json).
-2. `npm run build` (regenerates `public/`).
-3. Redeploy (Vercel MCP `deploy_to_vercel`, or `vercel --prod`).
+2. `npm run deploy` — builds and publishes to the live URL.
 
 That's it — a new live product page + checkout handoff. No code changes.
+(`npm run build` alone just regenerates `public/` for local preview.)
 
 ### Product fields
 
@@ -30,7 +33,7 @@ That's it — a new live product page + checkout handoff. No code changes.
 
 ## How checkout works
 
-Product page **Buy now** → `/checkout?p=<slug>` → order summary + email capture →
+Product page **Buy now** → `/checkout.html?p=<slug>` → order summary + email capture →
 **Continue to secure payment** redirects to the product's `checkoutUrl` (hosted, PCI-safe).
 Until a `checkoutUrl` is set, the checkout step renders but tells the buyer payment isn't
 connected yet — so the page is testable today and goes live the moment a link is dropped in.
