@@ -29,7 +29,7 @@ That's it — a new live product page + checkout handoff. No code changes.
 | `shipping` | Shipping/returns line |
 | `cogs`, `shippingCost` | Contribution-margin math — consumed by the DRO-3 dashboard (see [`DASHBOARD.md`](DASHBOARD.md); a test JSON can reference a product by `slug`) |
 | `checkoutUrl` | **Hosted checkout link** (Stripe Payment Link or Shopify). Empty = checkout step shows "processor not connected". |
-| `pixel.{meta,tiktok,ga4}` | Tracking IDs — consumed by DRO-5 |
+| `pixel.{meta,tiktok,ga4}` | Tracking IDs — override store-level pixels per product (DRO-5). Usually set `store.pixel` once for the one-product test. |
 
 ## How checkout works
 
@@ -59,5 +59,16 @@ processor risk stays low. Drop the hosted URL into a product's `checkoutUrl` and
 
 No custom backend, no card handling, no DB. Disposable by design — losers get `active:false`
 and removed. Tracking (DRO-5) and live payments (DRO-4) plug into the slots above.
+
+## Tracking & attribution (DRO-5)
+
+Meta/TikTok/Google pixels + server-side Conversions APIs with **deduplicated** purchase events and a
+canonical **UTM scheme** — so every test has trustworthy CAC/ROAS/CVR. Pixels stay dormant until ids
+are configured (zero tracking code ships otherwise — safe to host anywhere). See **[`TRACKING.md`](TRACKING.md)**
+for the UTM scheme, dedup design, the creds the CEO supplies, and how to verify:
+
+```bash
+npm run verify:tracking   # static wiring + dedup checks (no creds needed)
+```
 
 ## Credentials / access still needed from CEO — see DRO-2 issue comment.

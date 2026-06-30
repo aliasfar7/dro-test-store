@@ -3,7 +3,9 @@
     "name": "Dropship Test Lab",
     "supportEmail": "support@example.com",
     "currency": "USD",
-    "currencySymbol": "$"
+    "currencySymbol": "$",
+    "pixel": { "meta": "", "tiktok": "", "ga4": "" },
+    "capiEndpoint": ""
   },
   "products": [
     {

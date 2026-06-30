@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
 <title>Checkout — Dropship Test Lab</title>
-<link rel="stylesheet" href="/dro-test-store/assets/styles.css" />
-<script src="/dro-test-store/assets/catalog.js"></script>
+<link rel="stylesheet" href="/assets/styles.css" />
+<script>window.__TRACK__={"meta":"","tiktok":"","ga4":"","capiEndpoint":"","currency":"USD","debug":false};window.__PAGE__={"type":"checkout"};</script>
+<script src="/assets/track.js" defer></script>
+<script src="/assets/catalog.js"></script>
 <script>
-window.__BASE__="/dro-test-store";
+window.__BASE__="";
 window.addEventListener("DOMContentLoaded",function(){
   var sym=(window.STORE&&window.STORE.sym)||"$";
+  var cur=(window.STORE&&window.STORE.currency)||"USD";
   var slug=new URLSearchParams(location.search).get("p");
   var item=window.CATALOG&&window.CATALOG[slug];
   var el=document.getElementById("summary");
@@ -20,13 +23,23 @@ window.addEventListener("DOMContentLoaded",function(){
     '<label class="fld">Email<input id="email" type="email" placeholder="you@example.com" required /></label>'+
     '<div class="total"><span>Total</span><strong>'+price+'</strong></div>'+
     '<button id="pay" class="cta">Continue to secure payment</button><p id="note" class="muted"></p>';
+  // InitiateCheckout — fired once on reaching the checkout step.
+  if(window.dro)window.dro.track("InitiateCheckout",{value:item.price,currency:cur,content_ids:[slug],content_name:item.name,
+    contents:[{content_id:slug,quantity:1,price:item.price}],items:[{item_id:slug,item_name:item.name,price:item.price,quantity:1}]});
   document.getElementById("pay").addEventListener("click",function(){
     var email=document.getElementById("email").value.trim();
     var note=document.getElementById("note");
     if(!email||email.indexOf("@")<0){note.textContent="Enter a valid email to continue.";return;}
     if(item.checkoutUrl){
+      // Pre-mint the Purchase event_id so the thank-you pixel and server CAPI dedup to one event.
+      var eid=window.dro?window.dro.uuid():String(Date.now());
+      var attr=window.dro?window.dro.attr():{};
+      window.dro&&window.dro.store("dro_pending",{event_id:eid,slug:slug,name:item.name,value:item.price,currency:cur,email:email,attribution:attr,ts:Date.now()});
       var u=item.checkoutUrl;
       u+=(u.indexOf("?")<0?"?":"&")+"prefilled_email="+encodeURIComponent(email);
+      u+="&client_reference_id="+encodeURIComponent(eid); // ties the order back for server-side dedup (DRO-4 webhook)
+      // Carry attribution into the processor's URL so the order is always source-attributable.
+      ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(function(k){if(attr[k])u+="&"+k+"="+encodeURIComponent(attr[k]);});
       location.href=u;
     }else{
       note.innerHTML="Payment processor not connected yet (pending DRO-4). Add a hosted checkout URL to this product in data/products.json to go live.";
@@ -37,7 +50,7 @@ window.addEventListener("DOMContentLoaded",function(){
 </head>
 <body>
 <main class="wrap">
-  <a class="back" href="/dro-test-store/">← Back to store</a>
+  <a class="back" href="/">← Back to store</a>
   <h1>Checkout</h1>
   <section id="summary" class="checkout"></section></main>
 <footer class="foot">

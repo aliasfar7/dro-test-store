@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "deploy": "bash scripts/deploy.sh",
-    "verify-charge": "node scripts/verify-charge.mjs"
+    "verify-charge": "node scripts/verify-charge.mjs",
+    "verify:tracking": "node scripts/verify-tracking.mjs"
   }
 }

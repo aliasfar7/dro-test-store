@@ -22,6 +22,26 @@ const esc = (s = "") =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const url = (p) => `${BASE}${p}`; // prefix an absolute site path
 
+// --- Tracking config (DRO-5) -------------------------------------------------
+// Store-level pixel/CAPI config; a product may override any pixel id. Empty ids => that pixel is
+// simply not initialized (no broken/empty pixels — ad-account safe). capiEndpoint enables the
+// server-side Conversions API relay (api/capi); leave "" on static-only hosts (browser pixel only).
+const storePixel = store.pixel || {};
+const capiEndpoint = store.capiEndpoint || "";
+const currency = store.currency || "USD";
+function trackHead(page, product) {
+  const px = product ? { ...storePixel, ...(product.pixel || {}) } : storePixel;
+  const cfg = { meta: px.meta || "", tiktok: px.tiktok || "", ga4: px.ga4 || "", capiEndpoint, currency, debug: false };
+  const pg = { type: page };
+  if (product) pg.product = { id: product.sku || product.slug, name: product.name, price: product.price, currency };
+  // Meta <noscript> pixel fallback — only when a Meta id is configured.
+  const noscript = cfg.meta
+    ? `<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=${esc(cfg.meta)}&ev=PageView&noscript=1" /></noscript>`
+    : "";
+  return `<script>window.__TRACK__=${JSON.stringify(cfg)};window.__PAGE__=${JSON.stringify(pg)};</script>
+<script src="${url("/assets/track.js")}" defer></script>${noscript}`;
+}
+
 // Reset generated output dir (keep nothing stale).
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(join(OUT, "p"), { recursive: true });
@@ -74,7 +94,7 @@ function productPage(p) {
       <div class="desc"><p>${esc(p.description || "")}</p></div>
     </div>
   </section>`;
-  return layout(`${p.name} — ${store.name}`, body);
+  return layout(`${p.name} — ${store.name}`, body, trackHead("product", p));
 }
 
 // --- Index ---
@@ -90,7 +110,7 @@ const indexBody = `
   <header class="hero-head"><h1>${esc(store.name)}</h1>
   <p class="muted">Live one-product test pages. ${products.length} active.</p></header>
   <section class="grid">${cards || "<p>No active products. Add one in data/products.json.</p>"}</section>`;
-writeFileSync(join(OUT, "index.html"), layout(store.name, indexBody));
+writeFileSync(join(OUT, "index.html"), layout(store.name, indexBody, trackHead("index")));
 
 // --- Product pages ---
 for (const p of products) {
@@ -102,11 +122,13 @@ const checkoutBody = `
   <a class="back" href="${url("/")}">← Back to store</a>
   <h1>Checkout</h1>
   <section id="summary" class="checkout"></section>`;
-const checkoutHead = `<script src="${url("/assets/catalog.js")}"></script>
+const checkoutHead = trackHead("checkout") + `
+<script src="${url("/assets/catalog.js")}"></script>
 <script>
 window.__BASE__=${JSON.stringify(BASE)};
 window.addEventListener("DOMContentLoaded",function(){
   var sym=(window.STORE&&window.STORE.sym)||"$";
+  var cur=(window.STORE&&window.STORE.currency)||"USD";
   var slug=new URLSearchParams(location.search).get("p");
   var item=window.CATALOG&&window.CATALOG[slug];
   var el=document.getElementById("summary");
@@ -116,13 +138,23 @@ window.addEventListener("DOMContentLoaded",function(){
     '<label class="fld">Email<input id="email" type="email" placeholder="you@example.com" required /></label>'+
     '<div class="total"><span>Total</span><strong>'+price+'</strong></div>'+
     '<button id="pay" class="cta">Continue to secure payment</button><p id="note" class="muted"></p>';
+  // InitiateCheckout — fired once on reaching the checkout step.
+  if(window.dro)window.dro.track("InitiateCheckout",{value:item.price,currency:cur,content_ids:[slug],content_name:item.name,
+    contents:[{content_id:slug,quantity:1,price:item.price}],items:[{item_id:slug,item_name:item.name,price:item.price,quantity:1}]});
   document.getElementById("pay").addEventListener("click",function(){
     var email=document.getElementById("email").value.trim();
     var note=document.getElementById("note");
     if(!email||email.indexOf("@")<0){note.textContent="Enter a valid email to continue.";return;}
     if(item.checkoutUrl){
+      // Pre-mint the Purchase event_id so the thank-you pixel and server CAPI dedup to one event.
+      var eid=window.dro?window.dro.uuid():String(Date.now());
+      var attr=window.dro?window.dro.attr():{};
+      window.dro&&window.dro.store("dro_pending",{event_id:eid,slug:slug,name:item.name,value:item.price,currency:cur,email:email,attribution:attr,ts:Date.now()});
       var u=item.checkoutUrl;
       u+=(u.indexOf("?")<0?"?":"&")+"prefilled_email="+encodeURIComponent(email);
+      u+="&client_reference_id="+encodeURIComponent(eid); // ties the order back for server-side dedup (DRO-4 webhook)
+      // Carry attribution into the processor's URL so the order is always source-attributable.
+      ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(function(k){if(attr[k])u+="&"+k+"="+encodeURIComponent(attr[k]);});
       location.href=u;
     }else{
       note.innerHTML="Payment processor not connected yet (pending DRO-4). Add a hosted checkout URL to this product in data/products.json to go live.";
@@ -132,19 +164,56 @@ window.addEventListener("DOMContentLoaded",function(){
 </script>`;
 writeFileSync(join(OUT, "checkout.html"), layout(`Checkout — ${store.name}`, checkoutBody, checkoutHead));
 
+// --- Thank-you page (post-payment redirect target) ---------------------------
+// Set the hosted checkout's "after payment" redirect to <site>/thank-you.html. This page fires the
+// Purchase pixel + relays the same event_id to the server CAPI (dedup). Order value/currency/email
+// come from the dro_pending context stored at checkout handoff; ?value=&currency= can override.
+const thankyouBody = `
+  <section class="checkout">
+    <h1>Thank you — order confirmed</h1>
+    <p class="muted">Your payment was received. A confirmation email is on its way.</p>
+    <p id="ty-detail" class="muted"></p>
+    <a class="cta" href="${url("/")}">Continue browsing</a>
+  </section>`;
+const thankyouHead = trackHead("thankyou") + `
+<script>
+window.addEventListener("DOMContentLoaded",function(){
+  if(!window.dro)return;
+  var p=window.dro.store("dro_pending")||{};
+  var q=new URLSearchParams(location.search);
+  var value=q.get("value")!=null?Number(q.get("value")):p.value;
+  var currency=q.get("currency")||p.currency||window.dro.currency;
+  var eid=p.event_id||q.get("client_reference_id")||window.dro.uuid();
+  // Guard against double-fire on refresh (dedup also protects, but keep it clean).
+  if(window.dro.store("dro_fired_"+eid)){return;}
+  var params={value:value,currency:currency,content_ids:p.slug?[p.slug]:undefined,content_name:p.name,num_items:1};
+  window.dro.track("Purchase",params,{eventId:eid});      // browser pixels
+  var relay=Object.assign({},params,{currency:currency}); if(p.email)relay.email=p.email;
+  window.dro.relay("Purchase",relay,eid);                  // server CAPI (same event_id)
+  window.dro.store("dro_fired_"+eid,true);
+  window.dro.store("dro_pending",null);
+  var d=document.getElementById("ty-detail");
+  if(d&&value!=null)d.textContent="Order total: "+currency+" "+Number(value).toFixed(2);
+});
+</script>`;
+writeFileSync(join(OUT, "thank-you.html"), layout(`Thank you — ${store.name}`, thankyouBody, thankyouHead));
+
 // --- Styles ---
 writeFileSync(join(OUT, "assets", "styles.css"), readFileSync(join(ROOT, "src", "styles.css"), "utf8"));
+
+// --- Tracking module (DRO-5) ---
+writeFileSync(join(OUT, "assets", "track.js"), readFileSync(join(ROOT, "src", "track.js"), "utf8"));
 
 // --- Catalog for client-side checkout ---
 const catalog = Object.fromEntries(
   products.map((p) => [
     p.slug,
-    { name: p.name, price: p.price, image: p.image, checkoutUrl: p.checkoutUrl || "" },
+    { name: p.name, price: p.price, image: p.image, checkoutUrl: p.checkoutUrl || "", currency },
   ])
 );
 writeFileSync(
   join(OUT, "assets", "catalog.js"),
-  `window.CATALOG=${JSON.stringify(catalog)};window.STORE=${JSON.stringify({ name: store.name, sym })};`
+  `window.CATALOG=${JSON.stringify(catalog)};window.STORE=${JSON.stringify({ name: store.name, sym, currency })};`
 );
 
 console.log(`Built ${products.length} product page(s) -> ${OUT} (BASE_PATH="${BASE || "/"}")`);
