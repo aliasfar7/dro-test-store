@@ -1,1 +1,1 @@
-window.CATALOG={"sample-product":{"name":"Sample Test Product","price":39,"image":"https://placehold.co/800x800/111827/e5e7eb?text=Product+Photo","checkoutUrl":"","currency":"USD"}};window.STORE={"name":"Dropship Test Lab","sym":"$","currency":"USD"};
+window.CATALOG={"sample-product":{"name":"Sample Test Product","price":1,"image":"https://placehold.co/800x800/111827/e5e7eb?text=Product+Photo","checkoutUrl":"https://buy.stripe.com/28E7sL2lS1DI1iw6jTew800","currency":"USD"}};window.STORE={"name":"Dropship Test Lab","sym":"$","currency":"USD"};
