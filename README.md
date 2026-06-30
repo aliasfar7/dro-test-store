@@ -24,7 +24,7 @@ That's it — a new live product page + checkout handoff. No code changes.
 | `image`, `gallery[]` | Product photos |
 | `benefits[]` | Bullet list |
 | `shipping` | Shipping/returns line |
-| `cogs`, `shippingCost` | Used later for contribution-margin math (DRO-6 dashboard) |
+| `cogs`, `shippingCost` | Contribution-margin math — consumed by the DRO-3 dashboard (see [`DASHBOARD.md`](DASHBOARD.md); a test JSON can reference a product by `slug`) |
 | `checkoutUrl` | **Hosted checkout link** (Stripe Payment Link or Shopify). Empty = checkout step shows "processor not connected". |
 | `pixel.{meta,tiktok,ga4}` | Tracking IDs — consumed by DRO-5 |
 
