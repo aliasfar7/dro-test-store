@@ -9,27 +9,30 @@
   },
   "products": [
     {
-      "slug": "sample-product",
+      "slug": "sunset-lamp-projector",
+      "sku": "DRO-T1-SUNSET",
       "active": true,
-      "name": "Sample Test Product",
-      "tagline": "Placeholder product page — priced at $1 for the DRO-4 live charge+refund proof. Replace with a real test SKU + price.",
-      "price": 1.0,
-      "compareAtPrice": null,
-      "image": "https://placehold.co/800x800/111827/e5e7eb?text=Product+Photo",
+      "name": "Sunset Lamp Projector",
+      "tagline": "Cast a warm sunset glow across any wall — 16 colors, USB-powered, adjustable angle.",
+      "price": 29.99,
+      "compareAtPrice": 49.99,
+      "image": "https://placehold.co/800x800/f97316/ffffff?text=Sunset+Lamp",
       "gallery": [
-        "https://placehold.co/800x800/111827/e5e7eb?text=Photo+1",
-        "https://placehold.co/800x800/1f2937/e5e7eb?text=Photo+2"
+        "https://placehold.co/800x800/f97316/ffffff?text=Sunset+Glow",
+        "https://placehold.co/800x800/7c3aed/ffffff?text=16+Colors",
+        "https://placehold.co/800x800/111827/e5e7eb?text=USB+Powered"
       ],
       "benefits": [
-        "One clear, factual benefit goes here.",
-        "A second concrete benefit goes here.",
-        "Shipping and returns expectation stated plainly."
+        "Projects a soft sunset/rainbow gradient onto walls and ceilings for photos and ambiance.",
+        "16 colors with a rotating head — angle it where you want the light to land.",
+        "USB-powered: plug into any phone charger, laptop, or power bank. No batteries.",
+        "Ships in 1-2 business days, delivery 7-12 days, 30-day returns."
       ],
-      "description": "Replace this with a plain, accurate description of the product. Keep claims factual and policy-safe: no fake reviews, no medical/financial guarantees, no urgency fabrication. This text is the placeholder seed page used to verify the testing machine renders and reaches checkout.",
+      "description": "A compact projection lamp that casts a warm, sunset-style gradient of light across a wall or ceiling — popular for room ambiance, photo and video backdrops, and streaming setups. The head rotates so you can aim the glow, and it runs off any standard USB port (charger, laptop, or power bank). 16 color settings. This is a décor light; it is not a primary room light or a medical or therapeutic device.",
       "shipping": "Ships in 1-2 business days. Delivery 7-12 days. 30-day returns.",
-      "cogs": 8.0,
+      "cogs": 6.5,
       "shippingCost": 4.5,
-      "checkoutUrl": "https://buy.stripe.com/28E7sL2lS1DI1iw6jTew800",
+      "checkoutUrl": "https://buy.stripe.com/4gM00j6C81DI9P27nXew801",
       "pixel": { "meta": "", "tiktok": "", "ga4": "" }
     }
   ]
