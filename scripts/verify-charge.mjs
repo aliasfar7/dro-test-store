@@ -61,7 +61,7 @@ async function stripe(method, path, body) {
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/x-www-form-urlencoded",
-      // Idempotency: re-running the test-mode proof won't pile up duplicate intents within a run.
+      // Pin the API version so response shapes (e.g. PaymentIntent.latest_charge) stay stable.
       "Stripe-Version": "2024-06-20",
     },
     body: body ? form(body) : undefined,
@@ -111,10 +111,13 @@ async function testProof() {
   console.log(`     ✓ ${refund.id} refunded: ${refund.status}, ${(refund.amount / 100).toFixed(2)} ${refund.currency.toUpperCase()}`);
 
   console.log("3/3  Re-reading the PaymentIntent to confirm it is fully refunded…");
-  const after = await stripe("GET", `/payment_intents/${pi.id}`);
-  const charge = after.charges?.data?.[0] || after.latest_charge;
-  const refunded = typeof charge === "object" ? charge.refunded : true;
-  console.log(`     ✓ PaymentIntent ${after.id}: status=${after.status}, refunded=${refunded}\n`);
+  // Under API version 2024-06-20 the PaymentIntent has no `charges` list; expand latest_charge
+  // so we read the real refunded flag from Stripe instead of optimistically assuming it.
+  const after = await stripe("GET", `/payment_intents/${pi.id}?expand[]=latest_charge`);
+  const charge = after.latest_charge;
+  if (!charge || typeof charge !== "object") die("Could not expand latest_charge to confirm refund.");
+  if (charge.refunded !== true) die(`Charge ${charge.id} is not fully refunded (refunded=${charge.refunded}).`);
+  console.log(`     ✓ PaymentIntent ${after.id}: status=${after.status}, charge ${charge.id} refunded=${charge.refunded}\n`);
 
   console.log("✅ PASS — charge captured and refunded. Processor charge/refund path verified.");
   console.log("   Next: do the LIVE $1 proof through the real Payment Link checkout, then");
