@@ -4,8 +4,8 @@
     "supportEmail": "support@example.com",
     "currency": "USD",
     "currencySymbol": "$",
-    "pixel": { "meta": "", "tiktok": "", "ga4": "" },
-    "capiEndpoint": ""
+    "pixel": { "meta": "1021017267020680", "tiktok": "", "ga4": "" },
+    "capiEndpoint": "/api/capi"
   },
   "products": [
     {

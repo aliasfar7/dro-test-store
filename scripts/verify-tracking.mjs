@@ -63,6 +63,7 @@ ok(idx.includes('"tiktok":"TT_TEST_PIXEL"'), "TikTok pixel id injected");
 ok(idx.includes('"ga4":"G-TEST12345"'), "GA4 id injected");
 ok(idx.includes("facebook.com/tr?id=1234567890"), "Meta <noscript> fallback present (id-gated)");
 ok(pdp.includes('"type":"product"') && pdp.includes('"id":"sample-product"'), "product page passes ViewContent product context");
+ok(pdp.includes('"meta":"1234567890"'), "product page inherits store Meta pixel id (ViewContent is attributable, not dropped)");
 ok(co.includes("InitiateCheckout"), "checkout fires InitiateCheckout");
 ok(co.includes("dro_pending") && co.includes("uuid"), "checkout pre-mints dedup event_id + persists purchase context");
 ok(co.includes("client_reference_id"), "checkout carries dedup ref into hosted checkout URL");

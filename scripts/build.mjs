@@ -30,8 +30,16 @@ const storePixel = store.pixel || {};
 const capiEndpoint = store.capiEndpoint || "";
 const currency = store.currency || "USD";
 function trackHead(page, product) {
-  const px = product ? { ...storePixel, ...(product.pixel || {}) } : storePixel;
-  const cfg = { meta: px.meta || "", tiktok: px.tiktok || "", ga4: px.ga4 || "", capiEndpoint, currency, debug: false };
+  // Per-field inheritance: a product overrides a pixel id only when it provides a non-empty value.
+  // An empty product.pixel field means "inherit the store id", NOT "disable" — otherwise a product
+  // carrying `pixel:{meta:""}` would silently strip the store pixel off its own page (no ViewContent).
+  const pp = (product && product.pixel) || {};
+  const cfg = {
+    meta: pp.meta || storePixel.meta || "",
+    tiktok: pp.tiktok || storePixel.tiktok || "",
+    ga4: pp.ga4 || storePixel.ga4 || "",
+    capiEndpoint, currency, debug: false,
+  };
   const pg = { type: page };
   if (product) pg.product = { id: product.sku || product.slug, name: product.name, price: product.price, currency };
   // Meta <noscript> pixel fallback — only when a Meta id is configured.
