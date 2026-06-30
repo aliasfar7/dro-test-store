@@ -1,0 +1,34 @@
+{
+  "store": {
+    "name": "Dropship Test Lab",
+    "supportEmail": "support@example.com",
+    "currency": "USD",
+    "currencySymbol": "$"
+  },
+  "products": [
+    {
+      "slug": "sample-product",
+      "active": true,
+      "name": "Sample Test Product",
+      "tagline": "Placeholder product page — replace with a real test SKU.",
+      "price": 39.0,
+      "compareAtPrice": 69.0,
+      "image": "https://placehold.co/800x800/111827/e5e7eb?text=Product+Photo",
+      "gallery": [
+        "https://placehold.co/800x800/111827/e5e7eb?text=Photo+1",
+        "https://placehold.co/800x800/1f2937/e5e7eb?text=Photo+2"
+      ],
+      "benefits": [
+        "One clear, factual benefit goes here.",
+        "A second concrete benefit goes here.",
+        "Shipping and returns expectation stated plainly."
+      ],
+      "description": "Replace this with a plain, accurate description of the product. Keep claims factual and policy-safe: no fake reviews, no medical/financial guarantees, no urgency fabrication. This text is the placeholder seed page used to verify the testing machine renders and reaches checkout.",
+      "shipping": "Ships in 1-2 business days. Delivery 7-12 days. 30-day returns.",
+      "cogs": 8.0,
+      "shippingCost": 4.5,
+      "checkoutUrl": "",
+      "pixel": { "meta": "", "tiktok": "", "ga4": "" }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "dropship-test-store",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One-product test-store machine. Add a product in data/products.json, run build, deploy.",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}

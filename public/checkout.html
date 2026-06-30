@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Checkout — Dropship Test Lab</title>
+<link rel="stylesheet" href="/assets/styles.css" />
+<script src="/assets/catalog.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="/">← Back to store</a>
+  <h1>Checkout</h1>
+  <section id="summary" class="checkout"></section>
+</main>
+<footer class="foot"><p>Test environment · Hosted checkout handoff</p></footer>
+<script>
+(function () {
+  var sym = (window.STORE && window.STORE.sym) || "$";
+  var slug = new URLSearchParams(location.search).get("p");
+  var item = window.CATALOG && window.CATALOG[slug];
+  var el = document.getElementById("summary");
+  if (!item) {
+    el.innerHTML = '<p class="muted">Product not found. <a href="/">Return to store</a>.</p>';
+    return;
+  }
+  var price = sym + Number(item.price).toFixed(2);
+  el.innerHTML =
+    '<div class="order">' +
+      '<img src="' + item.image + '" alt="" />' +
+      '<div><h3>' + item.name + '</h3><p class="price">' + price + '</p></div>' +
+    '</div>' +
+    '<label class="fld">Email<input id="email" type="email" placeholder="you@example.com" required /></label>' +
+    '<div class="total"><span>Total</span><strong>' + price + '</strong></div>' +
+    '<button id="pay" class="cta">Continue to secure payment</button>' +
+    '<p id="note" class="muted"></p>';
+
+  document.getElementById("pay").addEventListener("click", function () {
+    var email = document.getElementById("email").value.trim();
+    var note = document.getElementById("note");
+    if (!email || email.indexOf("@") < 0) { note.textContent = "Enter a valid email to continue."; return; }
+    if (item.checkoutUrl) {
+      // Hosted checkout (Stripe Payment Link / Shopify). Pass email through when supported.
+      var url = item.checkoutUrl;
+      url += (url.indexOf("?") < 0 ? "?" : "&") + "prefilled_email=" + encodeURIComponent(email);
+      location.href = url;
+    } else {
+      note.innerHTML = "Payment processor not connected yet (pending DRO-4). " +
+        "Add a hosted checkout URL to this product in data/products.json to go live.";
+    }
+  });
+})();
+</script>
+</body>
+</html>

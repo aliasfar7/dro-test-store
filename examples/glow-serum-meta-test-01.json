@@ -1,0 +1,14 @@
+{
+  "name": "glow-serum-meta-test-01",
+  "ad_spend": 300.0,
+  "revenue": 540.0,
+  "refunds": 30.0,
+  "orders": 18,
+  "units": 18,
+  "sessions": 1200,
+  "chargebacks": 0,
+  "cogs_per_unit": 6.50,
+  "shipping_per_order": 4.00,
+  "processor_rate_pct": 2.9,
+  "processor_fixed_fee": 0.30
+}

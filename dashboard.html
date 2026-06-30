@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dropship · Per-Test Margin Dashboard</title>
+<style>
+  :root { --bg:#0f1216; --card:#171c22; --line:#262e38; --txt:#e6edf3; --mut:#8b97a5;
+          --good:#1f9d57; --goodbg:#10311f; --bad:#d23f3f; --badbg:#341616;
+          --warn:#caa83a; --warnbg:#33301a; --accent:#3b82f6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+         font:15px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:1040px; margin:0 auto; padding:24px 20px 60px; }
+  h1 { font-size:20px; margin:0 0 2px; }
+  .sub { color:var(--mut); margin:0 0 20px; font-size:13px; }
+  .grid { display:grid; grid-template-columns:380px 1fr; gap:20px; align-items:start; }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut);
+             margin:0 0 14px; }
+  label { display:block; font-size:12px; color:var(--mut); margin:10px 0 4px; }
+  input { width:100%; background:#0c0f13; border:1px solid var(--line); color:var(--txt);
+          border-radius:6px; padding:8px 10px; font-size:14px; }
+  input:focus { outline:none; border-color:var(--accent); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .hint { font-size:11px; color:var(--mut); margin-top:2px; }
+  .verdict { border-radius:10px; padding:18px 20px; margin-bottom:16px; border:1px solid; }
+  .verdict.good { background:var(--goodbg); border-color:var(--good); }
+  .verdict.bad  { background:var(--badbg);  border-color:var(--bad); }
+  .verdict .tag { font-size:26px; font-weight:800; letter-spacing:.02em; }
+  .verdict .why { color:var(--txt); margin-top:6px; font-size:14px; }
+  .flags { margin-top:10px; }
+  .pill { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px;
+          margin:3px 6px 0 0; }
+  .pill.warn { background:var(--warnbg); color:var(--warn); border:1px solid var(--warn); }
+  .waterfall { font-variant-numeric:tabular-nums; }
+  .waterfall .ln { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--line); }
+  .waterfall .ln:last-child { border-bottom:none; }
+  .waterfall .ln.total { font-weight:700; border-top:2px solid var(--line); margin-top:4px; padding-top:8px; }
+  .pos { color:var(--good); } .neg { color:var(--bad); }
+  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px; }
+  .kpi { background:#0c0f13; border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .kpi .k { font-size:11px; color:var(--mut); text-transform:uppercase; letter-spacing:.04em; }
+  .kpi .v { font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .kpi .d { font-size:10px; color:var(--mut); margin-top:1px; }
+  .warns { margin-top:14px; }
+  .warns .w { background:var(--warnbg); border:1px solid var(--warn); color:#f0e4b8;
+              border-radius:6px; padding:8px 10px; font-size:13px; margin-top:8px; }
+  .foot { color:var(--mut); font-size:12px; margin-top:18px; }
+  .foot code { color:var(--txt); background:#0c0f13; padding:1px 5px; border-radius:4px; }
+  details { margin-top:10px; } summary { cursor:pointer; color:var(--mut); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dropship · Per-Test Margin Dashboard</h1>
+  <p class="sub">Type a product test's numbers. Verdict, contribution margin, and CAC/ROAS/CVR/AOV update live.
+     Same math as <code>margin.py</code>. Nothing leaves this page.</p>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>Test inputs</h2>
+      <label>Test name</label>
+      <input id="name" value="glow-serum-meta-test-01" />
+
+      <div class="row2">
+        <div><label>Ad spend ($)</label><input id="ad_spend" type="number" step="0.01" value="300" /></div>
+        <div><label>Gross revenue ($)</label><input id="revenue" type="number" step="0.01" value="540" /></div>
+      </div>
+      <div class="row2">
+        <div><label>Refunds ($)</label><input id="refunds" type="number" step="0.01" value="30" /></div>
+        <div><label>Orders</label><input id="orders" type="number" step="1" value="18" /></div>
+      </div>
+      <div class="row2">
+        <div><label>Units sold</label><input id="units" type="number" step="1" value="18" /><div class="hint">blank = orders</div></div>
+        <div><label>Sessions / clicks</label><input id="sessions" type="number" step="1" value="1200" /></div>
+      </div>
+      <div class="row2">
+        <div><label>COGS per unit ($)</label><input id="cogs_per_unit" type="number" step="0.01" value="6.50" /></div>
+        <div><label>Shipping per order ($)</label><input id="shipping_per_order" type="number" step="0.01" value="4.00" /></div>
+      </div>
+      <div class="row2">
+        <div><label>Processor rate (%)</label><input id="processor_rate_pct" type="number" step="0.01" value="2.9" /></div>
+        <div><label>Processor fixed ($/txn)</label><input id="processor_fixed_fee" type="number" step="0.01" value="0.30" /></div>
+      </div>
+      <div><label>Chargebacks (count)</label><input id="chargebacks" type="number" step="1" value="0" /></div>
+      <details>
+        <summary>Override totals (optional — wins over per-unit fields)</summary>
+        <div class="row2">
+          <div><label>COGS total ($)</label><input id="cogs_total" type="number" step="0.01" /></div>
+          <div><label>Shipping total ($)</label><input id="shipping_total" type="number" step="0.01" /></div>
+        </div>
+        <div><label>Processor fees total ($)</label><input id="processor_fees_total" type="number" step="0.01" /></div>
+      </details>
+    </div>
+
+    <!-- OUTPUT -->
+    <div>
+      <div id="verdict" class="verdict"><div class="tag"></div><div class="why"></div><div class="flags"></div></div>
+
+      <div class="card">
+        <h2>The bottom line (after COGS + shipping + fees + ad spend)</h2>
+        <div class="waterfall" id="waterfall"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h2>Efficiency</h2>
+        <div class="kpis" id="kpis"></div>
+      </div>
+
+      <div class="warns" id="warns"></div>
+
+      <div class="foot">
+        Verdict bar: <b>NET-POSITIVE</b> = makes money after every cost incl. ad spend ·
+        <b>KILL</b> = loses money, or unit economics are upside-down before ads.
+        Thresholds (low-confidence &lt; 5 orders or &lt; $50 spend, thin margin &lt; 10%,
+        dispute &gt; 1%, refund &gt; 20%) match <code>margin.py</code>. See <code>README.md</code>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Judging thresholds: keep in lockstep with margin.py ----
+const MIN_ORDERS = 5, MIN_SPEND = 50, THIN_PCT = 10, DISPUTE_PCT = 1, REFUND_PCT = 20;
+const ids = ["name","ad_spend","revenue","refunds","orders","units","sessions",
+  "cogs_per_unit","shipping_per_order","processor_rate_pct","processor_fixed_fee",
+  "chargebacks","cogs_total","shipping_total","processor_fees_total"];
+
+const num = v => (v === "" || v === null || isNaN(parseFloat(v))) ? null : parseFloat(v);
+const $ = id => document.getElementById(id);
+const money = v => v===null ? "n/a" : (v<0?"-$":"$") + Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function evaluate(i){
+  const orders = Math.max(parseInt(i.orders)||0,0);
+  const units = i.units!==null ? parseInt(i.units) : orders;
+  const sessions = Math.max(parseInt(i.sessions)||0,0);
+  const adSpend = i.ad_spend||0, revenue = i.revenue||0, refunds = i.refunds||0;
+  const netRevenue = revenue - refunds;
+  const cogs = i.cogs_total!==null ? i.cogs_total : (i.cogs_per_unit||0)*units;
+  const shipping = i.shipping_total!==null ? i.shipping_total : (i.shipping_per_order||0)*orders;
+  const fees = i.processor_fees_total!==null ? i.processor_fees_total
+              : revenue*((i.processor_rate_pct||0)/100) + orders*(i.processor_fixed_fee||0);
+  const variable = cogs+shipping+fees;
+  const gross = netRevenue - variable;
+  const net = gross - adSpend;
+  const cmRatio = netRevenue>0 ? gross/netRevenue : null;
+  const aov = orders ? netRevenue/orders : null;
+  const cvr = sessions ? orders/sessions : null;
+  const cac = orders ? adSpend/orders : null;
+  const roas = adSpend>0 ? netRevenue/adSpend : null;
+  const beRoas = gross>0 ? netRevenue/gross : null;
+  const cpo = orders ? gross/orders : null;
+  const npo = orders ? net/orders : null;
+  const maxCac = cpo;
+  const headroom = (maxCac!==null&&cac!==null) ? maxCac-cac : null;
+  const netMarginPct = netRevenue>0 ? net/netRevenue*100 : null;
+  const disputePct = orders ? (i.chargebacks||0)/orders*100 : null;
+  const refundPct = revenue>0 ? refunds/revenue*100 : null;
+
+  let verdict, reason;
+  if (cmRatio!==null && cmRatio<=0){
+    verdict="KILL"; reason="Unit economics are upside-down: loses money on every sale before a single ad dollar. No ad efficiency can fix this.";
+  } else if (net>0){
+    verdict="NET-POSITIVE"; reason=`Makes ${money(net)} after ad spend (${money(npo)}/order).`;
+  } else {
+    verdict="KILL"; reason=`Loses ${money(-net)} after ad spend.` + ((cac!==null&&maxCac!==null)?` CAC ${money(cac)} exceeds the ${money(maxCac)} you can afford per order.`:"");
+  }
+  const warnings=[];
+  const lowConf = orders<MIN_ORDERS || adSpend<MIN_SPEND;
+  if (lowConf){
+    const b=[]; if(orders<MIN_ORDERS)b.push(`only ${orders} order(s) (need ≥ ${MIN_ORDERS})`);
+    if(adSpend<MIN_SPEND)b.push(`only ${money(adSpend)} spend (need ≥ $${MIN_SPEND})`);
+    warnings.push("LOW CONFIDENCE: "+b.join("; ")+". Keep testing before trusting this verdict.");
+  }
+  const thin = verdict==="NET-POSITIVE" && netMarginPct!==null && netMarginPct<THIN_PCT;
+  if (thin) warnings.push(`THIN MARGIN: net margin ${netMarginPct.toFixed(2)}% is under ${THIN_PCT}%. Positive but fragile to CPM/refund swings.`);
+  if (disputePct!==null && disputePct>DISPUTE_PCT) warnings.push(`PROCESSOR RISK: dispute rate ${disputePct.toFixed(2)}% exceeds ${DISPUTE_PCT}%. Chargebacks can freeze the processor.`);
+  if (refundPct!==null && refundPct>REFUND_PCT) warnings.push(`PROCESSOR RISK: refund rate ${refundPct.toFixed(2)}% exceeds ${REFUND_PCT}%. High refunds draw processor scrutiny.`);
+
+  return {verdict,reason,lowConf,thin,warnings,netRevenue,cogs,shipping,fees,gross,adSpend,net,
+          aov,cvr,cac,roas,beRoas,cpo,npo,maxCac,headroom,netMarginPct};
+}
+
+function render(){
+  const i={};
+  ids.forEach(id=>{ i[id] = id==="name" ? $(id).value : num($(id).value); });
+  const r = evaluate(i);
+  const good = r.verdict==="NET-POSITIVE";
+  const vb=$("verdict");
+  vb.className="verdict "+(good?"good":"bad");
+  vb.querySelector(".tag").textContent = r.verdict + (r.thin?"  ·  THIN":"");
+  vb.querySelector(".why").textContent = r.reason;
+  const flags=[]; if(r.lowConf)flags.push("LOW CONFIDENCE"); if(r.thin)flags.push("THIN MARGIN");
+  vb.querySelector(".flags").innerHTML = flags.map(f=>`<span class="pill warn">${f}</span>`).join("");
+
+  const cls=v=>v<0?"neg":"pos";
+  $("waterfall").innerHTML = `
+    <div class="ln"><span>Net revenue (after refunds)</span><span>${money(r.netRevenue)}</span></div>
+    <div class="ln"><span>− COGS</span><span class="neg">${money(-r.cogs)}</span></div>
+    <div class="ln"><span>− Shipping</span><span class="neg">${money(-r.shipping)}</span></div>
+    <div class="ln"><span>− Processor fees</span><span class="neg">${money(-r.fees)}</span></div>
+    <div class="ln total"><span>= Gross contribution (before ads)</span><span class="${cls(r.gross)}">${money(r.gross)}</span></div>
+    <div class="ln"><span>− Ad spend</span><span class="neg">${money(-r.adSpend)}</span></div>
+    <div class="ln total"><span>= NET CONTRIBUTION</span><span class="${cls(r.net)}">${money(r.net)}</span></div>`;
+
+  const pct=v=>v===null?"n/a":v.toFixed(2)+"%";
+  const x=v=>v===null?"n/a":v.toFixed(2)+"x";
+  $("kpis").innerHTML = [
+    ["AOV", money(r.aov), "net rev / order"],
+    ["CVR", r.cvr===null?"n/a":(r.cvr*100).toFixed(2)+"%", "orders / sessions"],
+    ["CAC", money(r.cac), "ad cost / order"],
+    ["ROAS", x(r.roas), "revenue / ad spend"],
+    ["Break-even ROAS", x(r.beRoas), "ROAS to not lose money"],
+    ["Net margin", pct(r.netMarginPct), "net / revenue"],
+    ["Contribution / order", money(r.cpo), "before ad spend"],
+    ["Max CAC affordable", money(r.maxCac), "break-even CAC"],
+    ["CAC headroom", money(r.headroom), "max CAC − actual CAC"],
+  ].map(([k,v,d])=>`<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+
+  $("warns").innerHTML = r.warnings.map(w=>`<div class="w">⚠ ${w}</div>`).join("");
+}
+
+ids.forEach(id=>$(id).addEventListener("input",render));
+render();
+</script>
+</body>
+</html>

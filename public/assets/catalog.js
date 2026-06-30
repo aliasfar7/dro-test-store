@@ -1,0 +1,1 @@
+window.CATALOG={"sample-product":{"name":"Sample Test Product","price":39,"image":"https://placehold.co/800x800/111827/e5e7eb?text=Product+Photo","checkoutUrl":""}};window.STORE={"name":"Dropship Test Lab","sym":"$"};

@@ -1,0 +1,10 @@
+{
+  "name": "winner-demo",
+  "ad_spend": 200.0,
+  "revenue": 1000.0,
+  "refunds": 0.0,
+  "orders": 25,
+  "sessions": 1000,
+  "cogs_per_unit": 8.0,
+  "shipping_per_order": 3.0
+}

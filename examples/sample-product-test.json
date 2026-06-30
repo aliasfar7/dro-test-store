@@ -1,0 +1,8 @@
+{
+  "product": "sample-product",
+  "ad_spend": 100.0,
+  "revenue": 500.0,
+  "refunds": 0.0,
+  "orders": 12,
+  "sessions": 800
+}
