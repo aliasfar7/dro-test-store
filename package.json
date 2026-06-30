@@ -6,6 +6,7 @@
   "description": "One-product test-store machine. Add a product in data/products.json, run build, deploy.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "verify-charge": "node scripts/verify-charge.mjs"
   }
 }

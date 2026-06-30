@@ -45,6 +45,16 @@ npm run build
 npx serve public   # or any static server
 ```
 
+## Payments (DRO-4)
+
+Checkout is **hosted** (Stripe Payment Link / Shopify) — no card data touches this site, so
+processor risk stays low. Drop the hosted URL into a product's `checkoutUrl` and it goes live.
+
+- **Verify the charge+refund path:** `STRIPE_SECRET_KEY=sk_test_... npm run verify-charge`
+  (automated $1 charge → capture → refund, risk-free). See [`PROCESSOR.md`](PROCESSOR.md).
+- **Live $1 proof + refund runbook, and the "do not get frozen" checklist:** [`PROCESSOR.md`](PROCESSOR.md).
+- Keys are read from the environment only — never committed (`.env.example`, `.gitignore`).
+
 ## What this is NOT
 
 No custom backend, no card handling, no DB. Disposable by design — losers get `active:false`
