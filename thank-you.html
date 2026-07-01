@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Thank you — Dropship Test Lab</title>
+<link rel="stylesheet" href="/dro-test-store/assets/styles.css" />
+<script>window.__TRACK__={"meta":"1021017267020680","tiktok":"","ga4":"","capiEndpoint":"/api/capi","currency":"USD","debug":false};window.__PAGE__={"type":"thankyou"};</script>
+<script src="/dro-test-store/assets/track.js" defer></script><noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=1021017267020680&ev=PageView&noscript=1" /></noscript>
+<script>
+window.addEventListener("DOMContentLoaded",function(){
+  if(!window.dro)return;
+  var p=window.dro.store("dro_pending")||{};
+  var q=new URLSearchParams(location.search);
+  var value=q.get("value")!=null?Number(q.get("value")):p.value;
+  var currency=q.get("currency")||p.currency||window.dro.currency;
+  var eid=p.event_id||q.get("client_reference_id")||window.dro.uuid();
+  // Guard against double-fire on refresh (dedup also protects, but keep it clean).
+  if(window.dro.store("dro_fired_"+eid)){return;}
+  var params={value:value,currency:currency,content_ids:p.slug?[p.slug]:undefined,content_name:p.name,num_items:1};
+  window.dro.track("Purchase",params,{eventId:eid});      // browser pixels
+  var relay=Object.assign({},params,{currency:currency}); if(p.email)relay.email=p.email;
+  window.dro.relay("Purchase",relay,eid);                  // server CAPI (same event_id)
+  window.dro.store("dro_fired_"+eid,true);
+  window.dro.store("dro_pending",null);
+  var d=document.getElementById("ty-detail");
+  if(d&&value!=null)d.textContent="Order total: "+currency+" "+Number(value).toFixed(2);
+});
+</script>
+</head>
+<body>
+<main class="wrap">
+  <section class="checkout">
+    <h1>Thank you — order confirmed</h1>
+    <p class="muted">Your payment was received. A confirmation email is on its way.</p>
+    <p id="ty-detail" class="muted"></p>
+    <a class="cta" href="/dro-test-store/">Continue browsing</a>
+  </section></main>
+<footer class="foot">
+  <p>Dropship Test Lab · Test environment · Questions: support@example.com</p>
+  <p class="muted">This is a product-testing store. Pages may be added or removed at any time.</p>
+</footer>
+</body>
+</html>

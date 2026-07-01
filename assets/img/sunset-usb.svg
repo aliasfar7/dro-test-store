@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img" aria-label="USB powered, plugs into any charger or power bank">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1030"/>
+      <stop offset="100%" stop-color="#0b0a1a"/>
+    </linearGradient>
+    <linearGradient id="cable" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fb8500"/>
+      <stop offset="100%" stop-color="#ef476f"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg4)"/>
+  <path d="M150 560 C 300 560, 320 300, 470 300" fill="none" stroke="url(#cable)" stroke-width="20" stroke-linecap="round"/>
+  <!-- USB plug -->
+  <rect x="120" y="528" width="70" height="64" rx="10" fill="#cdb4f6"/>
+  <rect x="96" y="540" width="30" height="40" rx="6" fill="#9b5de5"/>
+  <rect x="138" y="544" width="16" height="14" rx="2" fill="#1a1030"/>
+  <rect x="138" y="562" width="16" height="14" rx="2" fill="#1a1030"/>
+  <!-- lamp body -->
+  <rect x="470" y="250" width="120" height="100" rx="22" fill="#2e2542" stroke="#5a4a7e" stroke-width="3"/>
+  <circle cx="530" cy="300" r="20" fill="#ffd166"/>
+  <circle cx="530" cy="300" r="34" fill="#ffd166" opacity="0.3"/>
+  <text x="400" y="660" text-anchor="middle" font-family="Trebuchet MS, Verdana, sans-serif" font-size="58" font-weight="800" fill="#fff">USB-powered</text>
+  <text x="400" y="715" text-anchor="middle" font-family="Trebuchet MS, Verdana, sans-serif" font-size="34" font-weight="600" fill="#cdb4f6">any charger · laptop · power bank</text>
+</svg>

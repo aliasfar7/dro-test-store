@@ -1,0 +1,1 @@
+window.CATALOG={"sunset-lamp-projector":{"name":"Sunset Lamp Projector","price":29.99,"image":"/dro-test-store/assets/img/sunset-hero.svg","checkoutUrl":"https://buy.stripe.com/4gM00j6C81DI9P27nXew801","currency":"USD"}};window.STORE={"name":"Dropship Test Lab","sym":"$","currency":"USD"};
