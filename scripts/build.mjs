@@ -6,7 +6,7 @@
 // for GitHub Pages project sites). Default "" for root hosting (Vercel/Netlify/custom domain).
 // All internal links use explicit ".html" so the site is portable across hosts with no
 // clean-URL rewrites required.
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,6 +21,8 @@ const money = (n) => `${sym}${Number(n).toFixed(2)}`;
 const esc = (s = "") =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const url = (p) => `${BASE}${p}`; // prefix an absolute site path
+// Image src helper: BASE-prefix local paths ("/assets/..."), pass external URLs through untouched.
+const img = (p) => (typeof p === "string" && p.startsWith("/")) ? url(p) : p;
 
 // --- Tracking config (DRO-5) -------------------------------------------------
 // Store-level pixel/CAPI config; a product may override any pixel id. Empty ids => that pixel is
@@ -77,28 +79,42 @@ ${head}
 // --- Product page ---
 function productPage(p) {
   const hasSale = p.compareAtPrice && p.compareAtPrice > p.price;
+  const savePct = hasSale ? Math.round((1 - p.price / p.compareAtPrice) * 100) : 0;
   const gallery = (p.gallery && p.gallery.length ? p.gallery : [p.image])
-    .map((g) => `<img class="thumb" src="${esc(g)}" alt="${esc(p.name)}" loading="lazy" />`)
+    .map((g) => `<img class="thumb" src="${esc(img(g))}" alt="${esc(p.name)}" loading="lazy" />`)
     .join("");
   const benefits = (p.benefits || []).map((b) => `<li>${esc(b)}</li>`).join("");
+  // Fun, optional, data-driven flourishes. Absent fields simply render nothing.
+  const chips = (p.tags || [])
+    .map((t, i) => `<span class="chip${i === 0 ? " hot" : ""}">${esc(t)}</span>`)
+    .join("");
+  const swatches = (p.colors || [])
+    .map((c) => `<span class="dot" style="background:${esc(c)}"></span>`)
+    .join("");
+  const trust = (p.trust || [])
+    .map((t) => `<span>${esc(t)}</span>`)
+    .join("");
   const checkoutHref = url(`/checkout.html?p=${encodeURIComponent(p.slug)}`);
   const body = `
   <a class="back" href="${url("/")}">← All test products</a>
   <section class="pdp">
     <div class="media">
-      <img class="hero" src="${esc(p.image)}" alt="${esc(p.name)}" />
+      <img class="hero" src="${esc(img(p.image))}" alt="${esc(p.name)}" />
       <div class="gallery">${gallery}</div>
     </div>
     <div class="info">
       <h1>${esc(p.name)}</h1>
       <p class="tagline">${esc(p.tagline || "")}</p>
+      ${chips ? `<div class="badges">${chips}</div>` : ""}
+      ${swatches ? `<div class="swatches">${swatches}</div>` : ""}
       <p class="price">
         <strong>${money(p.price)}</strong>
-        ${hasSale ? `<span class="strike">${money(p.compareAtPrice)}</span>` : ""}
+        ${hasSale ? `<span class="strike">${money(p.compareAtPrice)}</span><span class="save">-${savePct}%</span>` : ""}
       </p>
       <ul class="benefits">${benefits}</ul>
-      <a class="cta" href="${checkoutHref}" data-slug="${esc(p.slug)}">Buy now</a>
+      <a class="cta" href="${checkoutHref}" data-slug="${esc(p.slug)}">Buy now →</a>
       <p class="ship muted">${esc(p.shipping || "")}</p>
+      ${trust ? `<div class="trust">${trust}</div>` : ""}
       <div class="desc"><p>${esc(p.description || "")}</p></div>
     </div>
   </section>`;
@@ -109,7 +125,7 @@ function productPage(p) {
 const cards = products
   .map(
     (p) => `<a class="card" href="${url(`/p/${p.slug}.html`)}">
-    <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" />
+    <img src="${esc(img(p.image))}" alt="${esc(p.name)}" loading="lazy" />
     <div class="card-body"><h3>${esc(p.name)}</h3><p class="price">${money(p.price)}</p></div>
   </a>`
   )
@@ -212,11 +228,15 @@ writeFileSync(join(OUT, "assets", "styles.css"), readFileSync(join(ROOT, "src", 
 // --- Tracking module (DRO-5) ---
 writeFileSync(join(OUT, "assets", "track.js"), readFileSync(join(ROOT, "src", "track.js"), "utf8"));
 
+// --- Image assets (product imagery lives in src/img, served from /assets/img) ---
+const imgSrc = join(ROOT, "src", "img");
+if (existsSync(imgSrc)) cpSync(imgSrc, join(OUT, "assets", "img"), { recursive: true });
+
 // --- Catalog for client-side checkout ---
 const catalog = Object.fromEntries(
   products.map((p) => [
     p.slug,
-    { name: p.name, price: p.price, image: p.image, checkoutUrl: p.checkoutUrl || "", currency },
+    { name: p.name, price: p.price, image: img(p.image), checkoutUrl: p.checkoutUrl || "", currency },
   ])
 );
 writeFileSync(
